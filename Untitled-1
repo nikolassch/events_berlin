@@ -1,0 +1,68 @@
+# First, check which packages you need:
+import pkg_resources
+required = {'selenium', 'pandas', 'beautifulsoup4'}
+installed = {pkg.key for pkg in pkg_resources.working_set}
+missing = required - installed
+
+# If any are missing, install them
+if missing:
+    print("Missing packages:", missing)
+    # You'll need to install these using pip:
+    # pip install selenium pandas beautifulsoup4
+
+import pandas as pd
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from bs4 import BeautifulSoup
+import time
+
+# URL of the Google Sheets published page
+url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRmygydebEruBWt5L_vYwpexFqNXV511pkRKpPu5GWlezhK5LJPutCDOMxES3b4r52E8n9o5WbuDbVE/pubhtml"
+
+# Initialize Chrome driver
+driver = webdriver.Chrome()
+driver.get(url)
+
+# Wait for the content to load
+time.sleep(2)
+
+# Get the page source after JavaScript has rendered
+soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+# Find all table rows
+rows = soup.find_all('tr')
+
+# Initialize lists to store data
+dates = []
+names = []
+links = []
+
+# Extract data from rows
+for row in rows[1:]:  # Skip header row
+    cells = row.find_all('td')
+    if len(cells) >= 4:  # Ensure row has enough cells
+        date = cells[0].text.strip()
+        name = cells[1].text.strip()
+        link_tag = cells[3].find('a')
+        link = link_tag['href'] if link_tag else ''
+        
+        if date and name:  # Only add if both date and name exist
+            dates.append(date)
+            names.append(name)
+            links.append(link)
+
+# Close the browser
+driver.quit()
+
+# Create DataFrame
+df = pd.DataFrame({
+    'Date': dates,
+    'Name': names,
+    'Link': links
+})
+
+# Filter out rows where Date is NaT (Not a Time) - these are invalid dates
+df = df.dropna(subset=['Date'])
+
+# Display the first few rows
+print(df.head(10))

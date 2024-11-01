@@ -1,0 +1,20 @@
+# Credentials
+credentials_google_calendar_api.json
+
+# Data files
+events.csv
+events_*.csv
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# Environment files
+.env
+.venv
+env/
+venv/
+
+# System files
+.DS_Store
+Thumbs.db
